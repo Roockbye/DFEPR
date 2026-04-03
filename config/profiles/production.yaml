@@ -1,0 +1,78 @@
+# DFEPR Production Profile Configuration
+# Used for real forensic investigations with full ACPO compliance
+
+profile: production
+version: "1.0.0"
+
+acquisition:
+  write_block: true
+  error_recovery: true
+  verify_after_imaging: true
+  hash_algorithm: "SHA256"
+  metadata_capture: true
+  sector_size: 512
+  chunk_size_mb: 64  # Larger chunks for performance
+  timeout_seconds: 7200
+
+recovery:
+  enable_photorec: true
+  enable_scalpel: true
+  enable_tsk: true
+  carving_depth: 0
+  metadata_recovery: true
+  file_type_priorities:
+    - "office"
+    - "images"
+    - "videos"
+    - "archives"
+    - "databases"
+    - "communications"
+
+reporting:
+  formats:
+    - "text"
+    - "html"
+    - "json"
+  include_timeline: true
+  include_recovered_files: true
+  include_hash_verification: true
+  signature_required: true
+  digital_signature: true
+
+storage:
+  base_evidence_dir: "/var/dfepr/evidence"
+  log_dir: "/var/dfepr/logs"
+  temp_dir: "/tmp/dfepr"
+  archive_dir: "/var/dfepr/archived"
+  backup_count: 10
+  auto_cleanup_temp: false  # Manual cleanup in production
+  cleanup_age_days: 30
+
+tools:
+  ddrescue_path: "/usr/bin/ddrescue"
+  photorec_path: "/usr/bin/photorec"
+  scalpel_path: "/usr/bin/scalpel"
+  fls_path: "/usr/bin/fls"
+  icat_path: "/usr/bin/icat"
+  md5sum_path: "/usr/bin/md5sum"
+  sha256sum_path: "/usr/bin/sha256sum"
+  ensure_availability: true  # All tools required
+
+acpo:
+  principle_1_enabled: true
+  principle_2_enabled: true
+  principle_3_enabled: true
+  principle_4_enabled: true  # Full oversight required
+  case_id_format: "CASE_{year}_{seq:04d}"
+  require_case_description: true
+  require_investigator_details: true
+  audit_log_required: true
+  hash_verification_required: true
+
+security:
+  require_authentication: true
+  min_password_length: 12
+  log_sensitive_data: false  # Security in production
+  encrypt_at_rest: true
+  encryption_key_file: "/etc/dfepr/encryption.key"
+  session_timeout_minutes: 30

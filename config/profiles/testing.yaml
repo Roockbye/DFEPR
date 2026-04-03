@@ -1,0 +1,72 @@
+# DFEPR Testing Profile Configuration
+# Used for automated testing with mock tools and sample data
+
+profile: testing
+version: "1.0.0"
+
+acquisition:
+  write_block: true
+  error_recovery: true
+  verify_after_imaging: true
+  hash_algorithm: "SHA256"
+  metadata_capture: true
+  sector_size: 512
+  chunk_size_mb: 8  # Small chunks for test performance
+  timeout_seconds: 300
+
+recovery:
+  enable_photorec: false  # Use mocks
+  enable_scalpel: false
+  enable_tsk: false
+  carving_depth: 0
+  metadata_recovery: true
+  file_type_priorities:
+    - "office"
+    - "images"
+
+reporting:
+  formats:
+    - "json"  # Simpler format for testing
+  include_timeline: false
+  include_recovered_files: false
+  include_hash_verification: true
+  signature_required: false
+  digital_signature: false
+
+storage:
+  base_evidence_dir: "./test_evidence"
+  log_dir: "./test_logs"
+  temp_dir: "/tmp/dfepr_test"
+  archive_dir: "./test_archived"
+  backup_count: 3
+  auto_cleanup_temp: true
+  cleanup_age_days: 1
+
+tools:
+  ddrescue_path: "/usr/bin/mock_ddrescue"
+  photorec_path: "/usr/bin/mock_photorec"
+  scalpel_path: "/usr/bin/mock_scalpel"
+  fls_path: "/usr/bin/mock_fls"
+  icat_path: "/usr/bin/mock_icat"
+  md5sum_path: "/usr/bin/md5sum"
+  sha256sum_path: "/usr/bin/sha256sum"
+  ensure_availability: false
+
+acpo:
+  principle_1_enabled: true
+  principle_2_enabled: true
+  principle_3_enabled: true
+  principle_4_enabled: false
+  case_id_format: "TEST_{year}_{seq:04d}"
+  require_case_description: false
+  require_investigator_details: false
+  audit_log_required: false
+  hash_verification_required: true
+
+security:
+  require_authentication: false
+  min_password_length: 4
+  log_sensitive_data: true
+  encrypt_at_rest: false
+  encryption_key_file: null
+  session_timeout_minutes: 60

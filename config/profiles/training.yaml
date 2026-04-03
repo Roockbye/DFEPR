@@ -1,0 +1,76 @@
+# DFEPR Training Profile Configuration
+# Used for educational purposes with detailed logging and sample data
+
+profile: training
+version: "1.0.0"
+
+acquisition:
+  write_block: true
+  error_recovery: true
+  verify_after_imaging: true
+  hash_algorithm: "SHA256"
+  metadata_capture: true
+  sector_size: 512
+  chunk_size_mb: 16
+  timeout_seconds: 3600
+
+recovery:
+  enable_photorec: true
+  enable_scalpel: true
+  enable_tsk: true
+  carving_depth: 0
+  metadata_recovery: true
+  file_type_priorities:
+    - "office"
+    - "images"
+    - "videos"
+    - "archives"
+
+reporting:
+  formats:
+    - "text"
+    - "html"
+    - "json"
+  include_timeline: true
+  include_recovered_files: true
+  include_hash_verification: true
+  signature_required: false
+  digital_signature: false
+
+storage:
+  base_evidence_dir: "./training_evidence"
+  log_dir: "./training_logs"
+  temp_dir: "/tmp/dfepr_training"
+  archive_dir: "./training_archived"
+  backup_count: 5
+  auto_cleanup_temp: false
+  cleanup_age_days: 14
+
+tools:
+  ddrescue_path: "ddrescue"
+  photorec_path: "photorec"
+  scalpel_path: "scalpel"
+  fls_path: "fls"
+  icat_path: "icat"
+  md5sum_path: "md5sum"
+  sha256sum_path: "sha256sum"
+  ensure_availability: false
+
+acpo:
+  principle_1_enabled: true
+  principle_2_enabled: true
+  principle_3_enabled: true
+  principle_4_enabled: true
+  case_id_format: "TRAIN_{year}_{seq:04d}"
+  require_case_description: true
+  require_investigator_details: true
+  audit_log_required: true
+  hash_verification_required: true
+
+security:
+  require_authentication: false
+  min_password_length: 8
+  log_sensitive_data: true  # Enable for learning
+  encrypt_at_rest: false
+  encryption_key_file: null
+  session_timeout_minutes: 480
