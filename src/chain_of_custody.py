@@ -15,6 +15,11 @@ from dataclasses import dataclass, asdict
 from enum import Enum
 import uuid
 
+from src.logging_handler import get_logger
+
+# Initialize logger for this module
+logger = get_logger(__name__)
+
 class CustodyAction(Enum):
     """Types of custody actions"""
     ACQUISITION = "acquisition"
@@ -102,6 +107,19 @@ class ChainOfCustody:
         )
         
         self.entries.append(entry)
+        
+        # Log the custody action
+        logger.audit(
+            operation='chain_of_custody_entry',
+            case_id=self.case_id,
+            evidence_id=self.evidence_id,
+            action=action.value,
+            result='success',
+            person=person_name,
+            location=location,
+            description=description
+        )
+        
         self._save_records()
     
     def _save_records(self) -> None:
@@ -115,6 +133,9 @@ class ChainOfCustody:
         
         with open(self.file_path, 'w') as f:
             json.dump(data, f, indent=2)
+        
+        logger.debug(f"Saved {len(self.entries)} chain of custody entries", 
+                     case_id=self.case_id, evidence_id=self.evidence_id)
         
         # Also save as CSV for easy viewing
         self._save_csv()
@@ -144,9 +165,15 @@ class ChainOfCustody:
             self.entries = [
                 CustodyEntry(**entry) for entry in data.get('entries', [])
             ]
+        
+        logger.debug(f"Loaded {len(self.entries)} chain of custody entries",
+                     case_id=self.case_id, evidence_id=self.evidence_id)
     
     def get_history(self) -> List[Dict]:
         """Get complete custody history"""
+        logger.debug("Retrieving custody history",
+                     case_id=self.case_id, evidence_id=self.evidence_id,
+                     entry_count=len(self.entries))
         return [entry.to_dict() for entry in self.entries]
     
     def generate_report(self) -> str:
