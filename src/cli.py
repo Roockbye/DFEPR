@@ -18,6 +18,7 @@ from src.file_recovery import FileRecoveryManager
 from src.report_generator import ReportGenerator, InvestigationReport, CaseInfo
 from src.utilities import Logger, ValidationHelper, TimestampHelper, SystemHelper
 from src.recovery import RecoveryManager, RecoveryTool, get_recovery_manager
+from src.reports import ReportGenerator as ReportsGenerator, ReportFormat, get_report_generator
 
 
 @click.group()
@@ -565,6 +566,183 @@ def tools_info():
     click.echo(f"\nTimestamp:")
     click.echo(f"  UTC:     {TimestampHelper.get_utc_timestamp()}")
     click.echo(f"  Local:   {datetime.now().isoformat()}")
+
+
+# ============================================================================
+# REPORT COMMANDS
+# ============================================================================
+
+@report.command("generate")
+@click.option("--case-id", required=True, help="Case identifier")
+@click.option("--type", "report_type", required=True, 
+              type=click.Choice(["case-summary", "evidence-inventory", "analysis", "statistics"]),
+              help="Report type to generate")
+@click.option("--format", "output_format", default="json",
+              type=click.Choice(["json", "csv", "text"]),
+              help="Output format")
+@click.option("--output", default=None, help="Output file path (optional)")
+def report_generate(case_id: str, report_type: str, output_format: str, output: Optional[str]):
+    """Generate forensic report"""
+    
+    try:
+        # Validate case ID
+        if not ValidationHelper.validate_case_id(case_id):
+            click.secho(f"✗ Invalid case ID: {case_id}", fg="red")
+            sys.exit(1)
+        
+        # Map format
+        format_map = {
+            "json": ReportFormat.JSON,
+            "csv": ReportFormat.CSV,
+            "text": ReportFormat.TEXT
+        }
+        
+        report_gen = get_report_generator()
+        
+        # Generate appropriate report
+        if report_type == "case-summary":
+            result = report_gen.generate_case_summary_report(case_id, format_map[output_format])
+        elif report_type == "evidence-inventory":
+            result = report_gen.generate_evidence_inventory_report(case_id, format_map[output_format])
+        elif report_type == "analysis":
+            result = report_gen.generate_analysis_report(case_id, format_map[output_format])
+        elif report_type == "statistics":
+            result = report_gen.generate_statistics_report(case_id, format_map[output_format])
+        else:
+            result = {"success": False, "error": f"Unknown report type: {report_type}"}
+        
+        if result.get("success"):
+            # Export to requested format
+            report_data = result.get("data")
+            
+            export_result = None
+            if output_format == "json":
+                export_result = report_gen.export_to_json(report_data, output)
+            elif output_format == "csv":
+                export_result = report_gen.export_to_csv(report_data, output)
+            elif output_format == "text":
+                export_result = report_gen.export_to_text(report_data, output)
+            
+            if export_result:
+                click.secho(f"✓ Report generated successfully", fg="green", bold=True)
+                click.echo(f"  Type: {report_type}")
+                click.echo(f"  Case: {case_id}")
+                click.echo(f"  Format: {output_format}")
+                click.echo(f"  Output: {export_result}")
+            else:
+                click.secho(f"✗ Failed to export report", fg="red")
+                sys.exit(1)
+        else:
+            click.secho(f"✗ Report generation failed: {result.get('error')}", fg="red")
+            sys.exit(1)
+    
+    except Exception as e:
+        click.secho(f"✗ Error: {e}", fg="red")
+        sys.exit(1)
+
+
+@report.command("list")
+def report_list():
+    """List all generated reports"""
+    
+    try:
+        reports_dir = Path.home() / ".dfepr" / "reports"
+        
+        if not reports_dir.exists():
+            click.echo("No reports found")
+            return
+        
+        reports = list(reports_dir.glob("report_*"))
+        
+        if not reports:
+            click.echo("No reports found")
+            return
+        
+        click.echo(f"\nGenerated Reports ({len(reports)} total)\n")
+        click.echo(f"{'File Name':<40} {'Size':<10} {'Modified'}")
+        click.echo("-" * 70)
+        
+        for report in sorted(reports, reverse=True):
+            size = SystemHelper.format_bytes(report.stat().st_size)
+            modified = datetime.fromtimestamp(report.stat().st_mtime).strftime("%Y-%m-%d %H:%M:%S")
+            click.echo(f"{report.name:<40} {size:<10} {modified}")
+    
+    except Exception as e:
+        click.secho(f"✗ Error: {e}", fg="red")
+        sys.exit(1)
+
+
+@report.command("export")
+@click.option("--case-id", required=True, help="Case identifier")
+@click.option("--format", "output_format", required=True,
+              type=click.Choice(["json", "csv", "text"]),
+              help="Export format")
+@click.option("--output", required=True, help="Output file path")
+def report_export(case_id: str, output_format: str, output: str):
+    """Export case data to specified format"""
+    
+    try:
+        # Validate case ID
+        if not ValidationHelper.validate_case_id(case_id):
+            click.secho(f"✗ Invalid case ID: {case_id}", fg="red")
+            sys.exit(1)
+        
+        # Validate output path
+        output_path = Path(output)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        report_gen = get_report_generator()
+        
+        # Generate comprehensive data export
+        if output_format == "json":
+            # Combine multiple reports into single JSON
+            summary = report_gen.generate_case_summary_report(case_id, ReportFormat.JSON)
+            inventory = report_gen.generate_evidence_inventory_report(case_id, ReportFormat.JSON)
+            
+            export_data = {
+                "export_timestamp": TimestampHelper.get_utc_timestamp(),
+                "case_id": case_id,
+                "summary": summary.get("data", {}),
+                "inventory": inventory.get("data", {})
+            }
+            
+            with open(output_path, 'w') as f:
+                json.dump(export_data, f, indent=2)
+            
+            size = SystemHelper.format_bytes(output_path.stat().st_size)
+            click.secho(f"✓ Data exported to JSON", fg="green", bold=True)
+            click.echo(f"  Output: {output_path}")
+            click.echo(f"  Size: {size}")
+        
+        elif output_format == "csv":
+            inventory = report_gen.generate_evidence_inventory_report(case_id, ReportFormat.CSV)
+            export_file = report_gen.export_to_csv(inventory.get("data", {}), str(output_path))
+            
+            if export_file:
+                size = SystemHelper.format_bytes(Path(export_file).stat().st_size)
+                click.secho(f"✓ Data exported to CSV", fg="green", bold=True)
+                click.echo(f"  Output: {export_file}")
+                click.echo(f"  Size: {size}")
+            else:
+                click.secho(f"✗ CSV export failed", fg="red")
+                sys.exit(1)
+        
+        elif output_format == "text":
+            summary = report_gen.generate_case_summary_report(case_id,ReportFormat.TEXT)
+            export_file = report_gen.export_to_text(summary.get("data", {}), str(output_path))
+            
+            if export_file:
+                size = SystemHelper.format_bytes(Path(export_file).stat().st_size)
+                click.secho(f"✓ Data exported to TEXT", fg="green", bold=True)
+                click.echo(f"  Output: {export_file}")
+                click.echo(f"  Size: {size}")
+            else:
+                click.secho(f"✗ TEXT export failed", fg="red")
+                sys.exit(1)
+    
+    except Exception as e:
+        click.secho(f"✗ Error: {e}", fg="red")
+        sys.exit(1)
 
 
 # ============================================================================

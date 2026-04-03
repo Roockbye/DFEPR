@@ -38,6 +38,9 @@ from src.recovery import (
     RecoveryManager, get_recovery_manager, RecoveryTool, RecoveryStatus, RecoveryTask,
     PhotoRecManager, ScalpelManager, TSKRecoveryManager
 )
+from src.reports import (
+    ReportGenerator, get_report_generator, ReportFormat, ReportType, ReportMetadata
+)
 
 __all__ = [
     # Chain of Custody
@@ -105,4 +108,10 @@ __all__ = [
     'PhotoRecManager',
     'ScalpelManager',
     'TSKRecoveryManager',
+    # Report Generation
+    'ReportGenerator',
+    'get_report_generator',
+    'ReportFormat',
+    'ReportType',
+    'ReportMetadata',
 ]
