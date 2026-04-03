@@ -20,6 +20,11 @@ from src.utilities import (
 from src.logging_handler import (
     StructuredLogger, LogLevel, LogFormatter, OperationContext, get_logger
 )
+from src.config_manager import (
+    ConfigurationManager, DFEPRConfig, get_config_manager,
+    AcquisitionConfig, RecoveryConfig, ReportingConfig, 
+    StorageConfig, ToolsConfig, ACPOConfig, SecurityConfig, ConfigProfile
+)
 
 __all__ = [
     # Chain of Custody
@@ -50,4 +55,16 @@ __all__ = [
     'LogFormatter',
     'OperationContext',
     'get_logger',
+    # Configuration Management
+    'ConfigurationManager',
+    'DFEPRConfig',
+    'get_config_manager',
+    'AcquisitionConfig',
+    'RecoveryConfig',
+    'ReportingConfig',
+    'StorageConfig',
+    'ToolsConfig',
+    'ACPOConfig',
+    'SecurityConfig',
+    'ConfigProfile',
 ]
