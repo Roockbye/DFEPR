@@ -44,6 +44,10 @@ from src.reports import (
 from src.optimization import (
     DatabaseOptimizer, get_optimizer, PerformanceMetrics
 )
+from src.analytics import (
+    AdvancedAnalytics, get_analytics, AnomalyType, CorrelationType, 
+    AnalyticsMetric, CorrelationLink, AnomalyAlert
+)
 
 __all__ = [
     # Chain of Custody
@@ -121,4 +125,12 @@ __all__ = [
     'DatabaseOptimizer',
     'get_optimizer',
     'PerformanceMetrics',
+    # Advanced Analytics
+    'AdvancedAnalytics',
+    'get_analytics',
+    'AnomalyType',
+    'CorrelationType',
+    'AnalyticsMetric',
+    'CorrelationLink',
+    'AnomalyAlert',
 ]

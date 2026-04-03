@@ -20,6 +20,7 @@ from src.utilities import Logger, ValidationHelper, TimestampHelper, SystemHelpe
 from src.recovery import RecoveryManager, RecoveryTool, get_recovery_manager
 from src.reports import ReportGenerator as ReportsGenerator, ReportFormat, get_report_generator
 from src.optimization import get_optimizer
+from src.analytics import get_analytics
 
 
 @click.group()
@@ -73,6 +74,12 @@ def tools():
 @cli.group()
 def optimize():
     """Database optimization and performance tuning"""
+    pass
+
+
+@cli.group()
+def analyze():
+    """Advanced forensic analytics and pattern detection"""
     pass
 
 
@@ -753,8 +760,6 @@ def report_export(case_id: str, output_format: str, output: str):
 
 
 # ============================================================================
-# MAIN ENTRY POINT
-# ============================================================================
 # OPTIMIZATION COMMANDS
 # ============================================================================
 
@@ -860,6 +865,148 @@ def optimize_load_test(count: int, case_id: str):
             click.echo(f"  Operation: {last_metric['operation']}")
             click.echo(f"  Duration: {last_metric['duration_ms']:.2f} ms")
             click.echo(f"  Throughput: {last_metric['items_per_second']:.2f} items/second")
+        
+    except Exception as e:
+        click.secho(f"✗ Error: {e}", fg="red")
+        sys.exit(1)
+
+
+# ============================================================================
+# ANALYTICS COMMANDS
+# ============================================================================
+
+@analyze.command("correlations")
+@click.option("--case-id", required=True, help="Case identifier")
+def analyze_correlations(case_id: str):
+    """Detect evidence correlations and relationships"""
+    try:
+        # Validate case ID
+        if not ValidationHelper.validate_case_id(case_id):
+            click.secho(f"✗ Invalid case ID: {case_id}", fg="red")
+            sys.exit(1)
+        
+        analytics = get_analytics()
+        correlations = analytics.correlate_evidence(case_id)
+        
+        click.secho(f"✓ Evidence correlations detected", fg="green", bold=True)
+        click.echo(f"  Total correlations: {len(correlations)}")
+        click.echo()
+        
+        if correlations:
+            click.echo("Correlations:")
+            for i, corr in enumerate(correlations[:10], 1):
+                click.echo(f"  {i}. {corr.evidence_id_1} -- {corr.evidence_id_2}")
+                click.echo(f"     Type: {corr.correlation_type.value}")
+                click.echo(f"     Confidence: {corr.confidence*100:.1f}%")
+            
+            if len(correlations) > 10:
+                click.echo(f"  ... and {len(correlations) - 10} more")
+        
+    except Exception as e:
+        click.secho(f"✗ Error: {e}", fg="red")
+        sys.exit(1)
+
+
+@analyze.command("anomalies")
+@click.option("--case-id", required=True, help="Case identifier")
+def analyze_anomalies(case_id: str):
+    """Detect anomalies in evidence"""
+    try:
+        # Validate case ID
+        if not ValidationHelper.validate_case_id(case_id):
+            click.secho(f"✗ Invalid case ID: {case_id}", fg="red")
+            sys.exit(1)
+        
+        analytics = get_analytics()
+        anomalies = analytics.detect_anomalies(case_id)
+        
+        click.secho(f"✓ Anomaly detection completed", fg="green", bold=True)
+        click.echo(f"  Total anomalies: {len(anomalies)}")
+        click.echo()
+        
+        if anomalies:
+            click.echo("Anomalies detected:")
+            for i, anomaly in enumerate(anomalies[:10], 1):
+                severity_color = "red" if anomaly.severity == "high" else "yellow"
+                click.secho(f"  {i}. [{anomaly.severity.upper()}] {anomaly.anomaly_type.value}", fg=severity_color)
+                click.echo(f"     Description: {anomaly.description}")
+                click.echo(f"     Affected items: {', '.join(anomaly.affected_items)}")
+            
+            if len(anomalies) > 10:
+                click.echo(f"  ... and {len(anomalies) - 10} more")
+        else:
+            click.echo("  No anomalies detected")
+        
+    except Exception as e:
+        click.secho(f"✗ Error: {e}", fg="red")
+        sys.exit(1)
+
+
+@analyze.command("timeline")
+@click.option("--case-id", required=True, help="Case identifier")
+def analyze_timeline(case_id: str):
+    """Analyze temporal patterns in evidence"""
+    try:
+        # Validate case ID
+        if not ValidationHelper.validate_case_id(case_id):
+            click.secho(f"✗ Invalid case ID: {case_id}", fg="red")
+            sys.exit(1)
+        
+        analytics = get_analytics()
+        timeline = analytics.analyze_temporal_patterns(case_id)
+        
+        click.secho(f"✓ Temporal analysis completed", fg="green", bold=True)
+        click.echo(f"  Total events: {timeline['total_events']}")
+        
+        if timeline['date_range']:
+            dr = timeline['date_range']
+            click.echo(f"  Date range: {dr['start']} to {dr['end']}")
+            click.echo(f"  Duration: {dr['duration_seconds']:.0f} seconds")
+        
+        click.echo(f"  Average interval: {timeline['average_interval_seconds']:.2f} seconds")
+        
+        if timeline['timeline_gaps']:
+            click.echo()
+            click.echo(f"  Timeline gaps detected: {len(timeline['timeline_gaps'])}")
+            for i, gap in enumerate(timeline['timeline_gaps'][:5], 1):
+                click.echo(f"    {i}. {gap['gap_seconds']:.0f} seconds")
+        
+        if timeline['temporal_clusters']:
+            click.echo()
+            click.echo(f"  Temporal clusters: {len(timeline['temporal_clusters'])}")
+        
+    except Exception as e:
+        click.secho(f"✗ Error: {e}", fg="red")
+        sys.exit(1)
+
+
+@analyze.command("report")
+@click.option("--case-id", required=True, help="Case identifier")
+@click.option("--output", default=None, type=click.Path(), help="Output file (optional)")
+def analyze_report(case_id: str, output: Optional[str]):
+    """Generate comprehensive analytics report"""
+    try:
+        # Validate case ID
+        if not ValidationHelper.validate_case_id(case_id):
+            click.secho(f"✗ Invalid case ID: {case_id}", fg="red")
+            sys.exit(1)
+        
+        analytics = get_analytics()
+        report = analytics.generate_analytics_report(case_id)
+        
+        click.secho(f"✓ Analytics report generated", fg="green", bold=True)
+        click.echo(f"  Case: {report['case_id']}")
+        click.echo(f"  Anomalies: {report['anomalies']}")
+        click.echo(f"  Correlations: {report['correlations']}")
+        
+        if output:
+            output_path = Path(output)
+            with open(output_path, 'w') as f:
+                json.dump(report, f, indent=2, default=str)
+            click.echo(f"  Report saved to: {output_path}")
+        else:
+            click.echo()
+            click.echo(json.dumps(report, indent=2, default=str))
         
     except Exception as e:
         click.secho(f"✗ Error: {e}", fg="red")
