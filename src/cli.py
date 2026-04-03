@@ -19,6 +19,7 @@ from src.report_generator import ReportGenerator, InvestigationReport, CaseInfo
 from src.utilities import Logger, ValidationHelper, TimestampHelper, SystemHelper
 from src.recovery import RecoveryManager, RecoveryTool, get_recovery_manager
 from src.reports import ReportGenerator as ReportsGenerator, ReportFormat, get_report_generator
+from src.optimization import get_optimizer
 
 
 @click.group()
@@ -66,6 +67,12 @@ def report():
 @cli.group()
 def tools():
     """System tools and utilities"""
+    pass
+
+
+@cli.group()
+def optimize():
+    """Database optimization and performance tuning"""
     pass
 
 
@@ -747,6 +754,118 @@ def report_export(case_id: str, output_format: str, output: str):
 
 # ============================================================================
 # MAIN ENTRY POINT
+# ============================================================================
+# OPTIMIZATION COMMANDS
+# ============================================================================
+
+@optimize.command("init-indexes")
+def optimize_init_indexes():
+    """Initialize database indexes for performance optimization"""
+    try:
+        optimizer = get_optimizer()
+        results = optimizer.create_optimized_indexes()
+        
+        click.secho("✓ Database indexes initialized", fg="green", bold=True)
+        for index_name, success in results.items():
+            status = "✓" if success else "✗"
+            click.echo(f"  {status} {index_name}")
+            
+    except Exception as e:
+        click.secho(f"✗ Error: {e}", fg="red")
+        sys.exit(1)
+
+
+@optimize.command("batch-import")
+@click.option("--file", "import_file", required=True, type=click.Path(exists=True),
+              help="JSON file with evidence items to import")
+def optimize_batch_import(import_file: str):
+    """Batch import evidence items from JSON file"""
+    try:
+        with open(import_file, 'r') as f:
+            evidence_items = json.load(f)
+        
+        if not isinstance(evidence_items, list):
+            evidence_items = [evidence_items]
+        
+        optimizer = get_optimizer()
+        successful, failed = optimizer.batch_register_evidence(evidence_items)
+        
+        click.secho(f"✓ Batch import completed", fg="green", bold=True)
+        click.echo(f"  Successful: {successful}")
+        click.echo(f"  Failed: {failed}")
+        
+    except Exception as e:
+        click.secho(f"✗ Error: {e}", fg="red")
+        sys.exit(1)
+
+
+@optimize.command("performance-report")
+def optimize_performance_report():
+    """Display database performance metrics"""
+    try:
+        optimizer = get_optimizer()
+        stats = optimizer.optimize_queries()
+        report = optimizer.get_performance_report()
+        
+        click.secho("✓ Performance Report", fg="green", bold=True)
+        click.echo(f"  Total cases: {stats.get('total_cases', 0)}")
+        click.echo(f"  Total evidence items: {stats.get('total_evidence', 0)}")
+        click.echo(f"  Total CoC entries: {stats.get('total_coc_entries', 0)}")
+        click.echo()
+        click.echo(f"  Operations processed: {report.get('total_operations', 0)}")
+        click.echo(f"  Items processed: {report.get('total_items_processed', 0)}")
+        click.echo(f"  Total time (ms): {report.get('total_time_ms', 0):.2f}")
+        click.echo(f"  Avg throughput: {report.get('average_items_per_second', 0):.2f} items/sec")
+        
+    except Exception as e:
+        click.secho(f"✗ Error: {e}", fg="red")
+        sys.exit(1)
+
+
+@optimize.command("load-test")
+@click.option("--count", default=100, type=int, help="Number of evidence items to create")
+@click.option("--case-id", required=True, help="Case ID for test items")
+def optimize_load_test(count: int, case_id: str):
+    """Perform load test with specified number of evidence items"""
+    try:
+        # Validate case ID
+        if not ValidationHelper.validate_case_id(case_id):
+            click.secho(f"✗ Invalid case ID: {case_id}", fg="red")
+            sys.exit(1)
+        
+        # Generate test evidence items
+        evidence_items = []
+        for i in range(count):
+            evidence_items.append({
+                'evidence_id': f"{case_id}_LOAD_TEST_{i:04d}",
+                'case_id': case_id,
+                'description': f'Load test evidence item {i}',
+                'source': 'load_test',
+                'status': 'created'
+            })
+        
+        optimizer = get_optimizer()
+        successful, failed = optimizer.batch_register_evidence(evidence_items)
+        
+        click.secho(f"✓ Load test completed", fg="green", bold=True)
+        click.echo(f"  Items requested: {count}")
+        click.echo(f"  Items created: {successful}")
+        click.echo(f"  Items failed: {failed}")
+        
+        # Show performance metrics
+        report = optimizer.get_performance_report()
+        if report.get('metrics'):
+            last_metric = report['metrics'][-1]
+            click.echo()
+            click.echo(f"  Operation: {last_metric['operation']}")
+            click.echo(f"  Duration: {last_metric['duration_ms']:.2f} ms")
+            click.echo(f"  Throughput: {last_metric['items_per_second']:.2f} items/second")
+        
+    except Exception as e:
+        click.secho(f"✗ Error: {e}", fg="red")
+        sys.exit(1)
+
+
 # ============================================================================
 
 def main():

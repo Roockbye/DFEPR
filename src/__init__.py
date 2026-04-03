@@ -41,6 +41,9 @@ from src.recovery import (
 from src.reports import (
     ReportGenerator, get_report_generator, ReportFormat, ReportType, ReportMetadata
 )
+from src.optimization import (
+    DatabaseOptimizer, get_optimizer, PerformanceMetrics
+)
 
 __all__ = [
     # Chain of Custody
@@ -114,4 +117,8 @@ __all__ = [
     'ReportFormat',
     'ReportType',
     'ReportMetadata',
+    # Database Optimization
+    'DatabaseOptimizer',
+    'get_optimizer',
+    'PerformanceMetrics',
 ]
