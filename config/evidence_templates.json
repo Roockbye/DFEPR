@@ -1,0 +1,100 @@
+{
+  "evidence_templates": {
+    "digital_storage": {
+      "name": "Dispositif de stockage numérique",
+      "categories": ["Disque dur", "SSD", "Clé USB", "Carte mémoire", "Téléphone", "Autre"],
+      "fields": {
+        "manufacturer": "Fabricant",
+        "model": "Modèle",
+        "serial_number": "Numéro de série",
+        "capacity": "Capacité",
+        "interface": "Interface",
+        "condition": "État physique"
+      }
+    },
+    "mobile_device": {
+      "name": "Appareil mobile",
+      "categories": ["Téléphone", "Tablette", "Montre intelligente", "Autre"],
+      "fields": {
+        "manufacturer": "Fabricant",
+        "model": "Modèle",
+        "imei": "IMEI",
+        "serial": "Numéro de série",
+        "os": "Système d'exploitation",
+        "condition": "État physique"
+      }
+    }
+  },
+  "examination_types": {
+    "acquisition": {
+      "name": "Acquisition d'image",
+      "description": "Création d'une image disque bitwise",
+      "tools": ["dd", "ddrescue", "dc3dd"]
+    },
+    "recovery": {
+      "name": "Récupération de données",
+      "description": "Récupération de fichiers supprimés ou cachés",
+      "tools": ["TSK", "PhotoRec", "Scalpel"]
+    },
+    "analysis": {
+      "name": "Analyse forense",
+      "description": "Analyse détaillée des preuves numériques",
+      "tools": ["Autopsy", "Volatility", "Sleuth Kit"]
+    }
+  },
+  "hash_algorithms": {
+    "md5": {
+      "name": "MD5",
+      "length": 32,
+      "deprecated": true,
+      "note": "Maintenu pour compatibilité, ne pas utiliser seul"
+    },
+    "sha256": {
+      "name": "SHA-256",
+      "length": 64,
+      "deprecated": false,
+      "note": "Recommandé par NIST et ACPO"
+    },
+    "sha512": {
+      "name": "SHA-512",
+      "length": 128,
+      "deprecated": false,
+      "note": "Sécurité renforcée"
+    }
+  },
+  "systems_support": {
+    "filesystems": [
+      "NTFS",
+      "exFAT",
+      "FAT32",
+      "ext4",
+      "ext3",
+      "HFS+",
+      "APFS",
+      "Btrfs",
+      "ZFS"
+    ],
+    "os": [
+      "Windows",
+      "Linux",
+      "macOS",
+      "iOS",
+      "Android"
+    ]
+  },
+  "reporting": {
+    "formats": ["PDF", "HTML", "DOCX"],
+    "sections": [
+      "Title Page",
+      "Executive Summary",
+      "Investigation Scope",
+      "Evidence Description",
+      "Chain of Custody",
+      "Examination Methodology",
+      "Findings",
+      "Conclusions",
+      "Technical Appendices",
+      "Certification"
+    ]
+  }
+}

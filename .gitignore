@@ -1,0 +1,146 @@
+# DFEPR .gitignore - Digital Forensics Evidence Preservation Lab
+
+# Evidence and Images (Large binary files - store separately)
+evidence/images/*.img
+evidence/images/*.dd
+evidence/images/*.iso
+evidence/images/*.E01
+evidence/recovered/
+evidence/reports/*.pdf
+evidence/reports/*.docx
+evidence/cases/*.txt
+evidence/cases/*.csv
+
+# Hash and metadata files
+*.hashes
+*.hashes.txt
+*.metadata
+*.metadata.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv
+
+# IDE and Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.sublime-project
+*.sublime-workspace
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
+
+# Logs
+logs/
+*.log
+*.log.*
+.pytest_cache/
+
+# Temporary files
+temp/
+tmp/
+*.tmp
+*.bak
+*.orig
+
+# OS specific
+.DS_Store
+Thumbs.db
+.directory
+
+# Docker
+docker-compose.override.yml
+.dockerignore
+docker_build/
+
+# Configuration
+config/local.json
+config/secrets.json
+.env
+.env.local
+
+# Sensitive data
+*.key
+*.pem
+*.pfx
+*.p12
+credentials.json
+secrets.yaml
+
+# Case data (version control not recommended for case files)
+evidence/cases/CASE_*
+evidence/cases/*.log
+evidence/cases/*.json
+
+# Build artifacts
+*.pyc
+*.pyo
+dist/
+build/
+*.egg-info/
+
+# Documentation generated files
+docs/_build/
+site/
+
+# Cache
+.cache/
+.pytest_cache/
+
+# Virtual environment
+venv/
+.venv/
+env/
+ENV/
+
+# Keep these directories (but ignore their large files)
+!evidence/cases/.gitkeep
+!evidence/images/.gitkeep
+!evidence/recovered/.gitkeep
+!evidence/reports/.gitkeep
+
+# Keep documentation
+!docs/**/*.md
+
+# Database files (if using local DB)
+*.db
+*.sqlite
+*.sqlite3
+
+# Backup files
+*.bak
+*~
+*.backup
