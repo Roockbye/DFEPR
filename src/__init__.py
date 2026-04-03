@@ -25,6 +25,9 @@ from src.config_manager import (
     AcquisitionConfig, RecoveryConfig, ReportingConfig, 
     StorageConfig, ToolsConfig, ACPOConfig, SecurityConfig, ConfigProfile
 )
+from src.database import (
+    DatabaseManager, get_database_manager, CaseRecord, EvidenceRecord, EvidenceStatus
+)
 
 __all__ = [
     # Chain of Custody
@@ -67,4 +70,10 @@ __all__ = [
     'ACPOConfig',
     'SecurityConfig',
     'ConfigProfile',
+    # Database Management
+    'DatabaseManager',
+    'get_database_manager',
+    'CaseRecord',
+    'EvidenceRecord',
+    'EvidenceStatus',
 ]
