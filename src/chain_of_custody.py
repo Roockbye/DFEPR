@@ -125,15 +125,16 @@ class ChainOfCustody:
             return
         
         with open(self.csv_path, 'w', newline='') as f:
-            writer = csv.DictWriter(f, fieldnames=[
+            fieldnames = [
                 'timestamp', 'action', 'person_name', 'person_title',
-                'location', 'description', 'signature', 'notes'
-            ])
+                'location', 'description', 'items_affected', 'signature', 'notes'
+            ]
+            writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction='ignore')
             writer.writeheader()
             
             for entry in self.entries:
                 row = entry.to_dict()
-                row['items_affected'] = json.loads(row['items_affected'])
+                # Keep items_affected as JSON string in CSV
                 writer.writerow(row)
     
     def _load_records(self) -> None:
