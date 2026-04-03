@@ -3,6 +3,104 @@
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-04-03 - Audit Phase 2 Improvements
+
+### Added - Major Enhancements
+
+#### Advanced Logging & Monitoring
+- `src/logging_handler.py` - Complete structured logging system
+  * Multi-level logging (DEBUG, INFO, WARNING, ERROR, CRITICAL, AUDIT)
+  * Rotating file handlers with automatic backups (20MB, 10 backups)
+  * Colored console output for better readability
+  * ISO 8601 UTC timestamps with timezone awareness
+  * ACPO audit trail with JSON format
+  * Operation context tracking with duration and result logging
+  * Audit trail export and filtering by case_id
+
+#### Configuration Management
+- `src/config_manager.py` - Comprehensive configuration system
+  * Profile-based configuration (development, testing, production, training)
+  * YAML file persistence in ~/.dfepr/config/
+  * Environment variable overrides (DFEPR_SECTION_KEY=value)
+  * Configuration validation with error reporting
+  * 7 configuration sections: acquisition, recovery, reporting, storage, tools, ACPO, security
+  * Automatic case directory structure creation
+  * Factory function for module-level singleton
+  * Support for multiple custom profiles
+
+#### Command-Line Interface (CLI)
+- `src/cli.py` - Professional Click-based CLI interface
+  * 6 command groups: case, evidence, hash, recovery, report, tools
+  * 17+ subcommands for complete DFEPR operations
+  * Input validation and ACPO compliance checking
+  * Error handling with detailed messages
+  * Verbose and quiet output modes
+  * Progress tracking for long operations
+
+#### Module Integration
+- Logging integration in core modules
+  * Chain of custody: Audit logging for all actions
+  * Hash verifier: Verification result tracking
+  * Enhanced debug logging throughout
+
+### Fixed
+
+- **Critical Bug - CSV Export Error**: Fixed ValueError in chain_of_custody.py
+  * Issue: items_affected field missing from CSV fieldnames
+  * Fix: Added items_affected to fieldnames, kept as JSON string
+  * Result: All 17 tests now passing (was 14/17)
+  * Commit: 7756927
+
+### Improved
+
+- Enhanced module usability with expanded __init__.py exports
+- Reconfig organization for clarity (better comments and grouping)
+- Datetime handling: Replaced deprecated utcnow() with timezone-aware datetime
+- Error messages with more contextual information
+- Documentation coverage expanded to new features
+
+### Documentation
+
+- `FEATURES.md` - Comprehensive feature guide (new)
+  * Complete feature descriptions
+  * API usage examples
+  * Workflow examples
+  * Troubleshooting guide
+  * Future enhancements roadmap
+
+- Updated `src/__init__.py` with comprehensive module documentation
+- Enhanced docstrings in all new modules
+- Added inline comments explaining complex logic
+
+### Testing
+
+- All 17 existing tests passing with new features
+- Zero regressions introduced
+- New modules tested via:
+  * Module-level testing (`if __name__ == '__main__'`)
+  * Integration tests (logging in core modules)
+  * Configuration validation tests
+
+### Dependencies
+
+- Added PyYAML (already in requirements, confirmed working)
+- Ensured click framework for CLI (already in requirements)
+
+### Version Bumps
+
+- logging_handler.py: LogLevel enum with custom AUDIT level
+- config_manager.py: DFEPRConfig dataclass versioning
+- cli.py: Click 8.0.0+ compatible
+
+### Commits Made (Audit Phase)
+
+1. 7756927 - fix: Fix CSV export error in chain_of_custody
+2. 803a4e4 - feat: Add professional CLI interface with Click framework
+3. 8147ec3 - feat: Add advanced logging and monitoring infrastructure
+4. 232755b - feat: Add comprehensive configuration management system
+5. 5e4ec15 - feat: Integrate logging into chain of custody module
+6. e1ae5ef - feat: Integrate logging into hash verifier module
+
 ## [1.0.0] - 2026-04-03
 
 ### Added - Initial Release
