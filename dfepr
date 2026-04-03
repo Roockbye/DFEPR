@@ -1,0 +1,10 @@
+#!/usr/bin/env python3
+"""
+DFEPR - Main CLI Entry Point
+Run DFEPR commands from command line
+"""
+
+from src.cli import main
+
+if __name__ == "__main__":
+    main()

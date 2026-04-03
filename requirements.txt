@@ -4,6 +4,10 @@
 # Core utilities
 dataclasses; python_version < '3.7'
 
+# CLI
+click>=8.0.0
+click-help-colors>=0.9.0
+
 # Report generation
 reportlab>=3.6.0
 Pillow>=9.0.0
@@ -16,9 +20,7 @@ numpy>=1.19.0
 PyYAML>=5.4.0
 jsonschema>=3.2.0
 
-# CLI and utilities
-click>=8.0.0
-click-help-colors>=0.9.0
+# Utilities
 colorama>=0.4.3
 tabulate>=0.8.9
 

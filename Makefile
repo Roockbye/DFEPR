@@ -1,7 +1,7 @@
 # DFEPR - Digital Forensics Lab Makefile
 # Automates common laboratory tasks
 
-.PHONY: help install setup clean test lint tests run-tests docs changelog logs
+.PHONY: help install setup clean test lint tests run-tests docs changelog logs cli
 
 PYTHON := python3
 PIP := pip3
@@ -28,17 +28,24 @@ help:
 	@echo "  $(YELLOW)format$(NC)        - Format code with black"
 	@echo "  $(YELLOW)check-tools$(NC)   - Check if forensic tools are installed"
 	@echo "  $(YELLOW)logs$(NC)          - View recent logs"
+	@echo "  $(YELLOW)cli$(NC)           - Show CLI help"
 	@echo ""
 	@echo "$(GREEN)Example usage:$(NC)"
 	@echo "  $(BLUE)make install$(NC)"
 	@echo "  $(BLUE)make test$(NC)"
 	@echo "  $(BLUE)make setup$(NC)"
+	@echo "  $(BLUE)make cli$(NC)"
 
 # Install Python dependencies
 install:
 	@echo "$(YELLOW)Installing Python dependencies...$(NC)"
 	$(PIP) install -r requirements.txt
 	@echo "$(GREEN)✓ Dependencies installed$(NC)"
+
+# Show CLI help
+cli:
+	@echo "$(YELLOW)DFEPR CLI Commands$(NC)\n"
+	$(PYTHON) -m src.cli --help
 
 # Complete setup
 setup: install

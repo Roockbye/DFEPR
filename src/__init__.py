@@ -6,20 +6,39 @@ Main package initialization
 __version__ = "1.0.0"
 __author__ = "DFEPR Team"
 __description__ = "Open-source forensic investigation lab"
+__license__ = "ACPO Compliant"
 
 # Import main modules
-from src.chain_of_custody import ChainOfCustody, EvidenceRegistry
+from src.chain_of_custody import ChainOfCustody, EvidenceRegistry, CustodyAction, CustodyEntry
 from src.hash_verifier import HashVerifier, HashMatch
-from src.file_recovery import FileRecoveryManager
+from src.file_recovery import FileRecoveryManager, RecoveredFile
 from src.report_generator import ReportGenerator, InvestigationReport, CaseInfo
+from src.utilities import (
+    Logger, SystemHelper, FileHelper, ConfigHelper, 
+    ValidationHelper, TimestampHelper
+)
 
 __all__ = [
+    # Chain of Custody
     'ChainOfCustody',
     'EvidenceRegistry',
+    'CustodyAction',
+    'CustodyEntry',
+    # Hash Management
     'HashVerifier',
     'HashMatch',
+    # File Recovery
     'FileRecoveryManager',
+    'RecoveredFile',
+    # Reporting
     'ReportGenerator',
     'InvestigationReport',
-    'CaseInfo'
+    'CaseInfo',
+    # Utilities
+    'Logger',
+    'SystemHelper',
+    'FileHelper',
+    'ConfigHelper',
+    'ValidationHelper',
+    'TimestampHelper',
 ]
