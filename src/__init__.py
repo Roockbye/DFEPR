@@ -31,6 +31,9 @@ from src.database import (
 from src.validator import (
     DataValidator, get_validator, ValidationResult, ValidationLevel
 )
+from src.statistics import (
+    StatisticsCollector, get_statistics_collector, CaseStatistics, SystemStatistics
+)
 
 __all__ = [
     # Chain of Custody
@@ -84,4 +87,9 @@ __all__ = [
     'get_validator',
     'ValidationResult',
     'ValidationLevel',
+    # Statistics & Analytics
+    'StatisticsCollector',
+    'get_statistics_collector',
+    'CaseStatistics',
+    'SystemStatistics',
 ]
