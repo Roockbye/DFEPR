@@ -28,6 +28,9 @@ from src.config_manager import (
 from src.database import (
     DatabaseManager, get_database_manager, CaseRecord, EvidenceRecord, EvidenceStatus
 )
+from src.validator import (
+    DataValidator, get_validator, ValidationResult, ValidationLevel
+)
 
 __all__ = [
     # Chain of Custody
@@ -76,4 +79,9 @@ __all__ = [
     'CaseRecord',
     'EvidenceRecord',
     'EvidenceStatus',
+    # Data Validation
+    'DataValidator',
+    'get_validator',
+    'ValidationResult',
+    'ValidationLevel',
 ]

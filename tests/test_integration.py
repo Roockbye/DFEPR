@@ -14,6 +14,7 @@ from click.testing import CliRunner
 from src.cli import cli
 from src.database import DatabaseManager
 from src.config_manager import get_config_manager
+from src.validator import DataValidator, ValidationLevel
 
 
 class CLIIntegrationTest(unittest.TestCase):
@@ -163,6 +164,81 @@ class CLIIntegrationTest(unittest.TestCase):
         self.assertEqual(stats['total_cases'], 2)
         self.assertEqual(stats['active_cases'], 2)
         self.assertEqual(stats['total_evidence'], 2)
+
+
+class ValidationTest(unittest.TestCase):
+    """Test advanced data validation."""
+
+    def setUp(self):
+        """Set up test environment."""
+        self.validator = DataValidator()
+
+    def test_case_id_validation(self):
+        """Test case ID validation."""
+        # Valid cases
+        valid, msg = self.validator.validate_case_id('THEFT_2026_000001')
+        self.assertTrue(valid)
+        
+        # Invalid cases
+        valid, msg = self.validator.validate_case_id('INVALID')
+        self.assertFalse(valid)
+
+    def test_evidence_id_validation(self):
+        """Test evidence ID validation."""
+        # Valid
+        valid, msg = self.validator.validate_evidence_id('EV-2026-0001')
+        self.assertTrue(valid)
+        
+        # Invalid
+        valid, msg = self.validator.validate_evidence_id('INVALID')
+        self.assertFalse(valid)
+
+    def test_hash_validation(self):
+        """Test hash format validation."""
+        # Valid SHA256
+        valid, msg = self.validator.validate_hash(
+            'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+            'sha256'
+        )
+        self.assertTrue(valid)
+        
+        # Invalid SHA256
+        valid, msg = self.validator.validate_hash('tooshort', 'sha256')
+        self.assertFalse(valid)
+
+    def test_case_description_validation(self):
+        """Test case description validation."""
+        # Valid
+        valid, msg = self.validator.validate_case_description(
+            'This is a comprehensive test case description for validation.'
+        )
+        self.assertTrue(valid)
+        
+        # Too short
+        valid, msg = self.validator.validate_case_description('Short')
+        self.assertFalse(valid)
+
+    def test_officer_name_validation(self):
+        """Test officer name validation."""
+        # Valid
+        valid, msg = self.validator.validate_officer_name('John Analyst')
+        self.assertTrue(valid)
+        
+        # Invalid
+        valid, msg = self.validator.validate_officer_name('JA')
+        self.assertFalse(valid)
+
+    def test_comprehensive_validation(self):
+        """Test comprehensive case validation."""
+        case_data = {
+            'case_id': 'THEFT_2026_000001',
+            'description': 'This is a comprehensive test case for a data theft investigation.',
+            'officer_name': 'John Analyst',
+            'agency_name': 'Test Police Department'
+        }
+        
+        all_valid, results = self.validator.validate_all(case_data)
+        self.assertFalse(all_valid is False)  # Should be mostly valid
 
 
 class ConfigurationTest(unittest.TestCase):
