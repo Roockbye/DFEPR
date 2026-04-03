@@ -13,6 +13,11 @@ from datetime import datetime
 import concurrent.futures
 import time
 
+from src.logging_handler import get_logger
+
+# Initialize logger for this module
+logger = get_logger(__name__)
+
 
 class HashVerifier:
     """Verifies and manages cryptographic hashes of evidence"""
@@ -59,9 +64,14 @@ class HashVerifier:
             algorithms = ["md5", "sha256"]
         
         if not os.path.exists(filepath):
+            logger.error(f"File not found: {filepath}",
+                        case_id=self.case_id)
             raise FileNotFoundError(f"File not found: {filepath}")
         
         file_size = os.path.getsize(filepath)
+        logger.debug(f"Calculating {algorithms} hashes for {filepath}",
+                    case_id=self.case_id, file_size=file_size)
+        
         hashers = {algo: hashlib.new(algo) for algo in algorithms}
         bytes_read = 0
         
@@ -81,9 +91,16 @@ class HashVerifier:
                         progress_callback(progress)
         
         except IOError as e:
+            logger.error(f"Error reading file: {e}",
+                        case_id=self.case_id, filepath=filepath)
             raise IOError(f"Error reading file: {e}")
         
-        return {algo: hasher.hexdigest() for algo, hasher in hashers.items()}
+        hashes = {algo: hasher.hexdigest() for algo, hasher in hashers.items()}
+        
+        logger.info(f"Hash calculation complete: {', '.join(algorithms)}",
+                   case_id=self.case_id, filepath=filepath)
+        
+        return hashes
     
     def verify_file_hash(
         self,
@@ -107,8 +124,21 @@ class HashVerifier:
         
         is_valid = actual_hash.lower() == expected_hash.lower()
         
-        # Log verification
+        # Log verification with audit trail
         status = "PASS" if is_valid else "FAIL"
+        result_type = "success" if is_valid else "mismatch"
+        
+        logger.audit(
+            operation='hash_verification',
+            case_id=self.case_id,
+            evidence_id='',
+            action='verify',
+            result=result_type,
+            filepath=filepath,
+            algorithm=algorithm,
+            status=status
+        )
+        
         self._log_verification(
             filepath, algorithm, expected_hash, actual_hash, status
         )
