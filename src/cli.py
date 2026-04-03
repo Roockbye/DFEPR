@@ -17,6 +17,7 @@ from src.hash_verifier import HashVerifier
 from src.file_recovery import FileRecoveryManager
 from src.report_generator import ReportGenerator, InvestigationReport, CaseInfo
 from src.utilities import Logger, ValidationHelper, TimestampHelper, SystemHelper
+from src.recovery import RecoveryManager, RecoveryTool, get_recovery_manager
 
 
 @click.group()
@@ -294,6 +295,216 @@ def hash_verify(filepath: str, expected: str, algorithm: str):
         click.echo(f"Actual:    {actual}")
         
         sys.exit(0 if is_valid else 1)
+    except Exception as e:
+        click.secho(f"✗ Error: {e}", fg="red")
+        sys.exit(1)
+
+
+# ============================================================================
+# RECOVERY COMMANDS
+# ============================================================================
+
+@recovery.command("tools")
+def recovery_tools():
+    """Check available recovery tools"""
+    
+    try:
+        # Get a recovery manager instance to check tools
+        rm = get_recovery_manager("TEST", "TEST")
+        available = rm.list_available_tools()
+        
+        click.echo("Available Recovery Tools:\n")
+        
+        for tool_name, is_available in available.items():
+            status = "✓" if is_available else "✗"
+            color = "green" if is_available else "red"
+            click.secho(f"{status} {tool_name:<20}", fg=color)
+        
+        tools_available = sum(1 for v in available.values() if v)
+        click.echo(f"\nAvailable: {tools_available}/{len(available)} tools")
+    
+    except Exception as e:
+        click.secho(f"✗ Error: {e}", fg="red")
+        sys.exit(1)
+
+
+@recovery.command("start")
+@click.option("--case-id", required=True, help="Case identifier")
+@click.option("--evidence-id", required=True, help="Evidence identifier")
+@click.option("--source", required=True, help="Source file/device path")
+@click.option("--tool", required=True, type=click.Choice(["photorec", "scalpel", "tsk"]),
+              help="Recovery tool to use")
+@click.option("--output-dir", default=None, help="Output directory (optional)")
+def recovery_start(case_id: str, evidence_id: str, source: str, tool: str, output_dir: Optional[str]):
+    """Start a file recovery operation"""
+    
+    try:
+        # Validate case and evidence IDs
+        if not ValidationHelper.validate_case_id(case_id):
+            click.secho(f"✗ Invalid case ID: {case_id}", fg="red")
+            sys.exit(1)
+        
+        if not ValidationHelper.validate_evidence_id(evidence_id):
+            click.secho(f"✗ Invalid evidence ID: {evidence_id}", fg="red")
+            sys.exit(1)
+        
+        # Validate source exists
+        if not Path(source).exists():
+            click.secho(f"✗ Source not found: {source}", fg="red")
+            sys.exit(1)
+        
+        # Map tool name to enum
+        tool_map = {
+            "photorec": RecoveryTool.PHOTOREC,
+            "scalpel": RecoveryTool.SCALPEL,
+            "tsk": RecoveryTool.TSK_RECOVER
+        }
+        
+        selected_tool = tool_map.get(tool)
+        
+        # Start recovery
+        rm = get_recovery_manager(case_id, evidence_id)
+        result = rm.start_recovery(source, selected_tool, output_dir)
+        
+        if result.get("success"):
+            click.secho(f"✓ Recovery started successfully", fg="green", bold=True)
+            click.echo(f"  Recovery ID: {result.get('recovery_id')}")
+            click.echo(f"  Tool: {result.get('tool')}")
+            click.echo(f"  Files recovered: {result.get('files_recovered')}")
+            click.echo(f"  Size: {SystemHelper.format_bytes(result.get('size_bytes', 0))}")
+            click.echo(f"  Output: {result.get('output_dir')}")
+            click.echo(f"  Timestamp: {result.get('timestamp')}")
+        else:
+            click.secho(f"✗ Recovery failed: {result.get('error')}", fg="red")
+            sys.exit(1)
+    
+    except Exception as e:
+        click.secho(f"✗ Error: {e}", fg="red")
+        sys.exit(1)
+
+
+@recovery.command("status")
+@click.option("--case-id", required=True, help="Case identifier")
+@click.option("--evidence-id", required=True, help="Evidence identifier")
+def recovery_status(case_id: str, evidence_id: str):
+    """Check recovery operation status"""
+    
+    try:
+        # Validate IDs
+        if not ValidationHelper.validate_case_id(case_id):
+            click.secho(f"✗ Invalid case ID: {case_id}", fg="red")
+            sys.exit(1)
+        
+        recovery_dir = Path.home() / ".dfepr" / "recoveries"
+        
+        if not recovery_dir.exists():
+            click.echo("No recovery operations found")
+            return
+        
+        # List recovery operations for this case/evidence
+        recovery_id_prefix = f"REC_{case_id}_{evidence_id}_"
+        recoveries = [d for d in recovery_dir.iterdir() 
+                     if d.is_dir() and d.name.startswith(recovery_id_prefix)]
+        
+        if not recoveries:
+            click.echo(f"No recovery operations found for {case_id}/{evidence_id}")
+            return
+        
+        click.echo(f"\nRecovery Operations for {case_id}/{evidence_id}\n")
+        click.echo(f"{'Recovery ID':<50} {'Status':<15} {'Files':<10} {'Size'}")
+        click.echo("-" * 85)
+        
+        for recovery in sorted(recoveries):
+            files_count = sum(1 for _ in recovery.rglob('*') if _.is_file())
+            size_bytes = sum(_.stat().st_size for _ in recovery.rglob('*') if _.is_file())
+            
+            click.echo(f"{recovery.name:<50} {'completed':<15} {files_count:<10} "
+                      f"{SystemHelper.format_bytes(size_bytes)}")
+    
+    except Exception as e:
+        click.secho(f"✗ Error: {e}", fg="red")
+        sys.exit(1)
+
+
+@recovery.command("results")
+@click.option("--case-id", required=True, help="Case identifier")
+@click.option("--evidence-id", required=True, help="Evidence identifier")
+@click.option("--recovery-id", default=None, help="Specific recovery ID (optional)")
+@click.option("--output-file", default=None, help="Save results to file")
+def recovery_results(case_id: str, evidence_id: str, recovery_id: Optional[str], output_file: Optional[str]):
+    """Display recovery results and recovered files"""
+    
+    try:
+        # Validate IDs
+        if not ValidationHelper.validate_case_id(case_id):
+            click.secho(f"✗ Invalid case ID: {case_id}", fg="red")
+            sys.exit(1)
+        
+        recovery_dir = Path.home() / ".dfepr" / "recoveries"
+        
+        if not recovery_dir.exists():
+            click.echo("No recovery operations found")
+            return
+        
+        # Find recovery directory
+        if recovery_id:
+            target_dir = recovery_dir / recovery_id
+        else:
+            # Find latest recovery for this case/evidence
+            recovery_id_prefix = f"REC_{case_id}_{evidence_id}_"
+            recoveries = sorted([d for d in recovery_dir.iterdir() 
+                               if d.is_dir() and d.name.startswith(recovery_id_prefix)],
+                              reverse=True)
+            
+            if not recoveries:
+                click.echo(f"No recovery operations found")
+                return
+            
+            target_dir = recoveries[0]
+            recovery_id = target_dir.name
+        
+        if not target_dir.exists():
+            click.secho(f"✗ Recovery not found: {recovery_id}", fg="red")
+            sys.exit(1)
+        
+        # Gather results
+        recovered_files = []
+        total_size = 0
+        
+        for item in target_dir.rglob('*'):
+            if item.is_file():
+                file_size = item.stat().st_size
+                recovered_files.append({
+                    "name": item.name,
+                    "path": str(item.relative_to(target_dir)),
+                    "size": file_size,
+                    "size_formatted": SystemHelper.format_bytes(file_size)
+                })
+                total_size += file_size
+        
+        # Format output
+        output_lines = []
+        output_lines.append(f"Recovery Results: {recovery_id}\n")
+        output_lines.append(f"Case: {case_id}")
+        output_lines.append(f"Evidence: {evidence_id}")
+        output_lines.append(f"Total Files: {len(recovered_files)}")
+        output_lines.append(f"Total Size: {SystemHelper.format_bytes(total_size)}\n")
+        output_lines.append(f"{'File Name':<40} {'Size':<15} {'Path'}")
+        output_lines.append("-" * 85)
+        
+        for file_info in sorted(recovered_files, key=lambda x: x['name']):
+            output_lines.append(f"{file_info['name']:<40} {file_info['size_formatted']:<15} "
+                              f"{file_info['path']}")
+        
+        output_text = "\n".join(output_lines)
+        
+        if output_file:
+            with open(output_file, 'w') as f:
+                f.write(output_text)
+            click.secho(f"✓ Results saved to {output_file}", fg="green")
+        else:
+            click.echo("\n" + output_text)
+    
     except Exception as e:
         click.secho(f"✗ Error: {e}", fg="red")
         sys.exit(1)

@@ -34,6 +34,10 @@ from src.validator import (
 from src.statistics import (
     StatisticsCollector, get_statistics_collector, CaseStatistics, SystemStatistics
 )
+from src.recovery import (
+    RecoveryManager, get_recovery_manager, RecoveryTool, RecoveryStatus, RecoveryTask,
+    PhotoRecManager, ScalpelManager, TSKRecoveryManager
+)
 
 __all__ = [
     # Chain of Custody
@@ -92,4 +96,13 @@ __all__ = [
     'get_statistics_collector',
     'CaseStatistics',
     'SystemStatistics',
+    # File Recovery Operations
+    'RecoveryManager',
+    'get_recovery_manager',
+    'RecoveryTool',
+    'RecoveryStatus',
+    'RecoveryTask',
+    'PhotoRecManager',
+    'ScalpelManager',
+    'TSKRecoveryManager',
 ]
